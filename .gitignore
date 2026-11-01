@@ -1,0 +1,16 @@
+# Environment & secrets
+.env
+.env*.local
+*.pem
+
+# Dependencies & build outputs
+node_modules/
+.expo/
+dist/
+web-build/
+dist-web/
+dist-share/
+
+# OS
+.DS_Store
+Thumbs.db
