@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Page shell for the ROAR web build (Expo fills #root with the app). -->
+    <!-- Why: hides Netlify's floating badge, which sat over the tab bar and blocked taps. -->
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0B0B0E" />
+    <title>ROAR</title>
+    <style id="expo-reset">
+      html,
+      body {
+        height: 100%;
+        background: #0b0b0e;
+      }
+      body {
+        overflow: hidden;
+      }
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+      /* Netlify's "Powered by Netlify" badge covered the Wall/Me tabs and bottom buttons. */
+      #nl-badge-frame {
+        display: none !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>
