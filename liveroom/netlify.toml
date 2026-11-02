@@ -1,0 +1,17 @@
+# Netlify builds the ROAR website from this folder (set "Base directory" to liveroom).
+# Why: so the build command, output folder and Node version live in the repo, not in a settings page.
+
+[build]
+  command = "npx expo export --platform web --output-dir dist-web"
+  publish = "dist-web"
+
+[build.environment]
+  # Expo SDK 58 needs Node 22 or newer.
+  NODE_VERSION = "22"
+  # Add EXPO_PUBLIC_SERVER_URL in Netlify's settings once the server is hosted (turns on live roasts + saving).
+
+# Any address (like /match) loads the app, so refreshing a screen never shows "page not found".
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
