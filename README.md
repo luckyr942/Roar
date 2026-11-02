@@ -85,6 +85,9 @@ npx expo start
 - Press `w` to open in your web browser.
 - Scan the QR code with **Expo Go** on your phone to run on a physical device with front-camera reaction capture!
 
+### 3. Go live with a friend anywhere
+See [DEPLOY.md](DEPLOY.md): MongoDB Atlas access, the Render server, and the Netlify server address.
+
 ---
 
 ## 🛠️ Tech Stack

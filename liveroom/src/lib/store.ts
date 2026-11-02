@@ -102,7 +102,10 @@ export const useRoar = create<RoarState>()(
             // Older saves don't have newer profile fields: keep the defaults for those.
             merge: (saved, current) => {
                 const s = (saved ?? {}) as Partial<RoarState>;
-                return { ...current, ...s, profile: { ...current.profile, ...s.profile } };
+                const profile = { ...current.profile, ...s.profile };
+                // The old default rival was "Rahul"; phones saved before the rename still have it.
+                if (profile.rival === 'Rahul') profile.rival = 'Aman';
+                return { ...current, ...s, profile };
             },
             // The phone only writes when something changes. Write once right after loading,
             // so a brand-new fanId is saved now (otherwise every app start made a new fan).

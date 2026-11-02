@@ -155,7 +155,13 @@ export default function BanterScreen() {
 
                 {/* Sticker tray */}
                 <View style={styles.card}>
-                    <Label>{connected ? `STICKERS · THROW THEM AT ${profile.rival.toUpperCase()}${later}` : 'STICKERS · JOIN A ROOM TO THROW'}</Label>
+                    <Label>
+                        {connected
+                            ? `STICKERS · THROW THEM AT ${profile.rival.toUpperCase()}${later}`
+                            : !hasServer()
+                              ? 'STICKERS · OFF: THIS SITE HAS NO ROAR SERVER YET'
+                              : 'STICKERS · JOIN A ROOM TO THROW'}
+                    </Label>
                     <View style={styles.stickers}>
                         {STICKER_NAMES.map((name) => (
                             <Pressable
