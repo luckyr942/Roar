@@ -34,6 +34,7 @@ export const hasServer = () => serverBase() !== null;
 export const serverUrl = () => serverBase() ?? '';
 export const socketUrl = () => serverUrl().replace(/^http/, 'ws');
 export const photoUrl = (photoId: string) => `${serverUrl()}/photos/${photoId}`;
+export const voiceUrl = (voiceId: string) => `${serverUrl()}/voices/${voiceId}`;
 
 // Small helper: send JSON, get JSON back, throw if the server says no.
 async function callServer(path: string, method = 'GET', body?: unknown) {
@@ -45,6 +46,15 @@ async function callServer(path: string, method = 'GET', body?: unknown) {
     });
     if (!response.ok) throw new Error(`${method} ${path} failed: ${response.status}`);
     return response.json();
+}
+
+// AI-written caption + roasts for a moment (the server holds the AI key, never the app).
+export function askAiBanter(
+    moment: Moment,
+    fan: { name: string; team: string; rival: string },
+    lang: string,
+): Promise<{ caption: string; roasts: Record<'Mild' | 'Spicy' | 'Savage', { top: string; bottom: string }>; sound?: string; stickers?: string[] }> {
+    return callServer('/ai/banter', 'POST', { moment, fan, lang });
 }
 
 export function saveFan(fanId: string, profile: Profile, matchesLived: number) {
@@ -75,6 +85,20 @@ export async function uploadPhoto(localUri: string): Promise<string> {
     if (!response.ok) throw new Error(`Photo upload failed: ${response.status}`);
     const result = await response.json();
     return result.photoId;
+}
+
+// Upload a recorded voice roast; the friend's phone streams it back by id.
+export async function uploadVoice(localUri: string): Promise<string> {
+    if (!hasServer()) throw new Error('No ROAR server on this device');
+    const clip = await (await fetch(localUri)).blob();
+    const response = await fetch(`${serverUrl()}/voices`, {
+        method: 'POST',
+        headers: { 'Content-Type': clip.type || 'audio/mp4' },
+        body: clip,
+    });
+    if (!response.ok) throw new Error(`Voice upload failed: ${response.status}`);
+    const result = await response.json();
+    return result.voiceId;
 }
 
 export type WallPost = {

@@ -10,7 +10,8 @@ import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { FONT, THEME } from '../constants/theme';
 import { useRoar } from '@/lib/store';
-import { captionFor, roastLine, roastsFor, LANGS, SPICES, type Lang, type Spice } from '@/lib/ai/captions';
+import { LANGS, SPICES, type Lang, type Spice } from '@/lib/ai/captions';
+import { useBanter } from '@/lib/ai/live';
 import { ARMY_NAME, LABEL_COLOR, rivalTeam } from '@/lib/teams';
 import { rivalHere, sendRoast, useRival } from '@/lib/rival/room';
 import { Button, Chip, IconButton, Label, Segmented } from '@/components/ui';
@@ -27,6 +28,7 @@ export default function MemoryScreen() {
     const [spice, setSpice] = useState<Spice>('Spicy');
     const [note, setNote] = useState('');
     const cardRef = useRef<React.ComponentRef<typeof View>>(null);
+    const banter = useBanter(memory?.moment ?? null, lang, profile);
 
     if (!memory) {
         return (
@@ -39,13 +41,16 @@ export default function MemoryScreen() {
     }
 
     const { moment } = memory;
-    const roast = roastsFor(moment, profile)[spice];
+    const roast = banter?.roasts[spice] ?? { top: '', bottom: '' };
     const isMI = profile.team === 'MI';
     const bandText = isMI ? '#FFFFFF' : THEME.bg;
     const bandSub = isMI ? '#DCE8FF' : '#3A3000';
 
     const sendLive = () => {
-        const ok = sendRoast(roastLine(moment, profile, spice), `${moment.label} · ${moment.overText}`);
+        const ok = sendRoast(`${roast.top} / ${roast.bottom}`, `${moment.label} · ${moment.overText}`, {
+            sound: banter?.sound,
+            stickers: banter?.stickers,
+        });
         setNote(ok ? `Sent to ${profile.rival}.` : `Not connected. Join a room on Banter first.`);
     };
 
@@ -107,7 +112,7 @@ export default function MemoryScreen() {
                             {moment.detail.split(' · ')[1]}
                             {moment.outcome ? ` · ${moment.outcome}` : ''} · IPL 2019 Final
                         </Text>
-                        <Text style={[styles.caption, { color: bandText }]}>{captionFor(moment, lang, profile)}</Text>
+                        <Text style={[styles.caption, { color: bandText }]}>{banter?.caption}</Text>
                         <View style={[styles.bandFoot, { borderTopColor: isMI ? '#4A80D8' : '#C9A400' }]}>
                             <Text style={[styles.byline, { color: bandText }]}>
                                 {profile.name.toUpperCase()} · {ARMY_NAME[profile.team]}
@@ -125,6 +130,7 @@ export default function MemoryScreen() {
                         <Label>
                             ROAST FOR {profile.rival.toUpperCase()} · {rivalTeam(profile.team)}
                         </Label>
+                        {banter?.byAI ? <Label color={THEME.roar}>WRITTEN BY AI</Label> : null}
                     </View>
                     <Segmented options={SPICES} value={spice} onChange={setSpice} activeBg={THEME.drop} />
                     <View style={styles.meme}>

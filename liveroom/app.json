@@ -41,6 +41,12 @@
           "cameraPermission": "ROAR uses your front camera to catch your reaction to big moments. Photos stay on your phone unless you share them.",
           "recordAudioAndroid": false
         }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow ROAR to use the microphone so you can send voice roasts to your friend."
+        }
       ]
     ],
     "experiments": {

@@ -1,11 +1,16 @@
 // Live banter rooms over WebSocket: fans with the same room code get each other's roasts instantly.
 // Why: roasting your rival is only fun in real time; every roast is also saved to MongoDB.
 
+import { readFileSync } from 'node:fs';
 import { WebSocketServer } from 'ws';
 import { collections } from './db.mjs';
 
 const MAX_TEXT = 280;
 const HISTORY_SIZE = 20;
+// Sound names the app knows (src/data/sounds.json); anything else is dropped.
+const SOUNDS = Object.keys(JSON.parse(readFileSync(new URL('../src/data/sounds.json', import.meta.url), 'utf8')));
+const STICKERS = Object.keys(JSON.parse(readFileSync(new URL('../src/data/stickers.json', import.meta.url), 'utf8')));
+const MAX_STICKERS = 6;
 const rooms = new Map(); // room code → Set of open sockets
 
 function membersOf(room) {
@@ -56,6 +61,9 @@ async function sendRoast(socket, message) {
         team: socket.fan.team,
         text: String(message.text ?? '').slice(0, MAX_TEXT),
         tag: String(message.tag ?? '').slice(0, 40),
+        sound: SOUNDS.includes(message.sound) ? message.sound : null,
+        voiceId: /^[a-f0-9]{24}$/.test(message.voiceId) ? message.voiceId : null, // a recorded voice roast
+        stickers: Array.isArray(message.stickers) ? message.stickers.filter((s) => STICKERS.includes(s)).slice(0, MAX_STICKERS) : [],
         at: Date.now(),
     };
     if (!roast.text) return;

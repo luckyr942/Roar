@@ -10,6 +10,9 @@ import { FONT, THEME } from '../constants/theme';
 import { useRoar } from '@/lib/store';
 import { joinRoom, leaveRoom, useRival } from '@/lib/rival/room';
 import { TEAM_COLOR } from '@/lib/teams';
+import { playSound, playVoice, isSoundName } from '@/lib/sounds';
+import { voiceUrl } from '@/lib/api';
+import StickerBurst, { STICKER_ONLY } from './StickerBurst';
 
 const SHOW_MS = 5000;
 const REJOIN_AFTER_TYPING_MS = 700;
@@ -32,6 +35,8 @@ export default function RoastBanner() {
     useEffect(() => {
         if (!toast) return;
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+        if (toast.voiceId) playVoice(voiceUrl(toast.voiceId));
+        else playSound(isSoundName(toast.sound) ? toast.sound : 'bruh');
         const t = setTimeout(dismissToast, SHOW_MS);
         return () => clearTimeout(t);
     }, [toast, dismissToast]);
@@ -53,9 +58,12 @@ export default function RoastBanner() {
                     <Text style={[styles.from, { color: TEAM_COLOR[toast.team] }]}>{toast.from.toUpperCase()} ROASTED YOU</Text>
                     {toast.tag ? <Text style={styles.tag}>{toast.tag}</Text> : null}
                 </View>
-                <Text style={styles.text} numberOfLines={3}>
-                    {toast.text}
-                </Text>
+                {toast.stickers?.length ? <StickerBurst key={toast.id} names={toast.stickers} size={72} /> : null}
+                {STICKER_ONLY.includes(toast.text) ? null : (
+                    <Text style={styles.text} numberOfLines={3}>
+                        {toast.text}
+                    </Text>
+                )}
                 <Text style={styles.hint}>Tap to roast back</Text>
             </Pressable>
         </View>

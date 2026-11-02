@@ -49,6 +49,7 @@ export default function MeScreen() {
                     <Setting icon="tv" title="TV delay" value={`${delayMs / 1000} seconds`} hint="Tap TV sync on the match screen" />
                     <Setting icon="camera" title="Camera arms at" value={`Tension ${ARM_CAMERA_AT}`} divider />
                     <Setting icon="send" title="Auto-roast" value={profile.autoRoast ? 'On' : 'Off'} divider onPress={() => setProfile({ autoRoast: !profile.autoRoast })} />
+                    <Setting icon="volume-2" title="Meme sounds" value={profile.sounds ? 'On' : 'Off'} divider onPress={() => setProfile({ sounds: !profile.sounds })} />
                     <Setting icon="message-square" title="Banter room" value={profile.room || 'None'} divider onPress={() => router.navigate('/banter')} />
                 </View>
 

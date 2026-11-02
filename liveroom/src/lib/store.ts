@@ -29,6 +29,7 @@ export type Profile = {
     rival: string;
     room: string; // live banter room code shared with your rival
     autoRoast: boolean; // send a roast by itself when a big moment goes your way
+    sounds: boolean; // meme sounds on roasts and big moments
 };
 
 // A random id made once per install; it's how the database knows which memories are yours.
@@ -66,7 +67,7 @@ export const useRoar = create<RoarState>()(
     persist(
         (set) => ({
             fanId: makeFanId(),
-            profile: { name: 'Lucky', team: 'MI', rival: 'Rahul', room: '', autoRoast: true },
+            profile: { name: 'Lucky', team: 'MI', rival: 'Aman', room: '', autoRoast: true, sounds: true },
             memories: [],
             matchesLived: 0,
             startedAt: null,

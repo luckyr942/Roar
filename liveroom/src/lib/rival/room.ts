@@ -7,7 +7,10 @@ import { hasServer, socketUrl } from '@/lib/api';
 
 const RETRY_MS = 3000;
 
-export type RoastMsg = { id: string; from: string; team: Team; text: string; tag: string; at: number; mine: boolean };
+export type RoastMsg = { id: string; from: string; team: Team; text: string; tag: string; at: number; mine: boolean } & RoastExtras;
+
+// What a roast can carry besides its text: a meme sound, a recorded voice, a few stickers.
+export type RoastExtras = { sound?: string | null; voiceId?: string | null; stickers?: string[] };
 type Member = { name: string; team: Team };
 
 type RivalState = {
@@ -89,11 +92,11 @@ export function leaveRoom() {
 }
 
 // Returns false when not connected, so the UI can say so instead of pretending it was sent.
-export function sendRoast(text: string, tag: string): boolean {
+export function sendRoast(text: string, tag: string, extras: RoastExtras = {}): boolean {
     if (!socket || socket.readyState !== WebSocket.OPEN || !wanted) return false;
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    socket.send(JSON.stringify({ type: 'roast', id, text, tag }));
-    const mine: RoastMsg = { id, from: wanted.name, team: wanted.team, text, tag, at: Date.now(), mine: true };
+    socket.send(JSON.stringify({ type: 'roast', id, text, tag, ...extras }));
+    const mine: RoastMsg = { id, from: wanted.name, team: wanted.team, text, tag, ...extras, at: Date.now(), mine: true };
     useRival.setState((s) => ({ messages: [mine, ...s.messages].slice(0, 50) }));
     return true;
 }

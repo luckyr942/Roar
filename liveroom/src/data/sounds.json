@@ -1,0 +1,15 @@
+{
+  "faaah": { "label": "FAAAH", "mood": "shocked pain when it goes wrong" },
+  "shocked": { "label": "Shocked", "mood": "cannot believe it" },
+  "bruh": { "label": "Bruh", "mood": "disappointed, that was stupid" },
+  "emotional-damage": { "label": "Emotional damage", "mood": "that roast really hurt them" },
+  "slap": { "label": "Slap", "mood": "brutal reply, they just got slapped" },
+  "cat-laugh": { "label": "Cat laugh", "mood": "laughing at the rival" },
+  "baby-laugh": { "label": "Baby laugh", "mood": "innocent laughing at them" },
+  "chicken-scream": { "label": "Chicken scream", "mood": "pure panic" },
+  "nuagh": { "label": "NUAGGHHH", "mood": "loud dramatic scream" },
+  "galaxy": { "label": "Galaxy meme", "mood": "epic, legendary shot" },
+  "nemesis": { "label": "Nemesis", "mood": "revenge, dominating the rival" },
+  "meri-jung": { "label": "Meri Jung (emotional)", "mood": "dramatic emotional moment, heartbreak" },
+  "mystery": { "label": "Mystery meme", "mood": "general meme reaction" }
+}

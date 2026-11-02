@@ -2,14 +2,19 @@
 // Why: watching is more fun when you can roast your friend the moment a wicket falls.
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Switch, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT, THEME } from '../constants/theme';
 import { useRoar } from '@/lib/store';
-import { QUICK_LINES, roastLine, SPICES } from '@/lib/ai/captions';
+import { QUICK_LINES, SPICES } from '@/lib/ai/captions';
+import { useBanter } from '@/lib/ai/live';
+import { playSound, playVoice, SOUND_LABEL, SOUND_NAMES, type SoundName } from '@/lib/sounds';
+import VoiceRoar from '@/components/VoiceRoar';
+import StickerBurst, { STICKER_ONLY } from '@/components/StickerBurst';
+import { randomStickers, STICKER_NAMES, STICKERS, type StickerName } from '@/lib/stickers';
 import { rivalHere, sendRoast, useRival } from '@/lib/rival/room';
 import { TEAM_TEXT } from '@/lib/teams';
-import { hasServer } from '@/lib/api';
+import { hasServer, voiceUrl } from '@/lib/api';
 import { Button, Label, TabBar } from '@/components/ui';
 
 export default function BanterScreen() {
@@ -20,17 +25,33 @@ export default function BanterScreen() {
     const members = useRival((s) => s.members);
     const messages = useRival((s) => s.messages);
 
-    const [code, setCode] = useState(profile.room);
+    // Both friends get the same code from their two names, so nobody has to type or share one.
+    const pairCode = makePairCode(profile.name, profile.rival);
+    const [code, setCode] = useState(profile.room || pairCode);
     const [draft, setDraft] = useState('');
-    const online = rivalHere(members);
+    const online = rivalHere(members); // your friend is in the room right now
     const inRoom = Boolean(profile.room);
+    const connected = inRoom && status === 'online'; // you can send; your friend gets it now or when they join
+    const later = connected && !online ? ` · ${profile.rival.toUpperCase()} GETS IT WHEN THEY JOIN` : '';
 
-    // Roast lines for the latest big moment, else a few generic ones.
-    const lines = lastMoment ? SPICES.map((s) => roastLine(lastMoment, profile, s)) : QUICK_LINES;
+    // Roast lines for the latest big moment (AI when the server has it), else a few generic ones.
+    const banter = useBanter(lastMoment, 'Hinglish', profile);
+    const lines = banter ? SPICES.map((s) => `${banter.roasts[s].top} / ${banter.roasts[s].bottom}`) : QUICK_LINES;
     const tag = lastMoment ? `${lastMoment.label} · ${lastMoment.overText}` : '';
 
-    const send = (text: string) => {
-        if (text.trim()) sendRoast(text.trim(), tag);
+    const send = (text: string, sound?: SoundName, stickers?: string[]) => {
+        if (text.trim()) sendRoast(text.trim(), tag, { sound, stickers });
+    };
+
+    // Stickers: one tap throws one; the storm throws five at once.
+    const throwStickers = (names: StickerName[], text = 'STICKER') => {
+        if (connected) sendRoast(text, tag || 'STICKER', { stickers: names });
+    };
+
+    // Sound board: plays here, and blasts the same sound on your friend's phone if they're in.
+    const blast = (name: SoundName) => {
+        playSound(name);
+        if (connected) sendRoast(SOUND_LABEL[name].toUpperCase(), 'SOUND', { sound: name });
     };
 
     let statusText = 'Not in a room';
@@ -69,8 +90,16 @@ export default function BanterScreen() {
                             <Button title="Join" onPress={() => code && setProfile({ room: code })} disabled={!code} style={{ height: 46 }} />
                         )}
                     </View>
+                    {!inRoom ? (
+                        <Button title={`Quick join ${pairCode}`} icon="zap"
+                            onPress={() => {
+                                setCode(pairCode);
+                                setProfile({ room: pairCode });
+                            }}
+                        />
+                    ) : null}
                     <Text style={styles.small}>
-                        Send {profile.rival} this code. You both join it, and roasts appear on each other&apos;s phone instantly.
+                        {profile.rival}&apos;s phone makes the same code ({pairCode}) when their name and rival are set. Or type any code you both agree on.
                     </Text>
                     <View style={styles.switchRow}>
                         <View style={{ flex: 1 }}>
@@ -89,14 +118,14 @@ export default function BanterScreen() {
 
                 {/* Fire a roast */}
                 <View style={styles.card}>
-                    <Label>{lastMoment ? `ROAST ABOUT ${tag}` : 'QUICK ROASTS'}</Label>
+                    <Label>{lastMoment ? `ROAST ABOUT ${tag}${banter?.byAI ? ' · WRITTEN BY AI' : ''}` : 'QUICK ROASTS'}</Label>
                     {lines.map((line) => (
                         <Pressable
                             key={line}
                             accessibilityRole="button"
-                            disabled={!online}
-                            onPress={() => send(line)}
-                            style={({ pressed }) => [styles.line, pressed && { borderColor: THEME.roar }, !online && { opacity: 0.45 }]}
+                            disabled={!connected}
+                            onPress={() => send(line, banter?.sound, banter?.stickers)}
+                            style={({ pressed }) => [styles.line, pressed && { borderColor: THEME.roar }, !connected && { opacity: 0.45 }]}
                         >
                             <Text style={styles.lineText}>{line}</Text>
                         </Pressable>
@@ -114,13 +143,58 @@ export default function BanterScreen() {
                         <Button
                             title="Send"
                             icon="send"
-                            disabled={!online || !draft.trim()}
+                            disabled={!connected || !draft.trim()}
                             onPress={() => {
                                 send(draft);
                                 setDraft('');
                             }}
                             style={{ height: 46 }}
                         />
+                    </View>
+                </View>
+
+                {/* Sticker tray */}
+                <View style={styles.card}>
+                    <Label>{connected ? `STICKERS · THROW THEM AT ${profile.rival.toUpperCase()}${later}` : 'STICKERS · JOIN A ROOM TO THROW'}</Label>
+                    <View style={styles.stickers}>
+                        {STICKER_NAMES.map((name) => (
+                            <Pressable
+                                key={name}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Send ${name} sticker`}
+                                disabled={!connected}
+                                onPress={() => throwStickers([name])}
+                                style={({ pressed }) => [styles.sticker, pressed && { transform: [{ scale: 0.85 }] }, !connected && { opacity: 0.45 }]}
+                            >
+                                <Image source={STICKERS[name]} style={{ width: 40, height: 40 }} resizeMode="contain" />
+                            </Pressable>
+                        ))}
+                    </View>
+                    <Button
+                        title="Sticker storm"
+                        icon="zap"
+                        kind="outline"
+                        disabled={!connected}
+                        onPress={() => throwStickers(randomStickers(5), 'STICKER STORM')}
+                    />
+                </View>
+
+                {/* Sound board */}
+                <View style={styles.card}>
+                    <Label>{connected ? (online ? `SOUND BLAST · ${profile.rival.toUpperCase()} HEARS IT TOO` : `SOUND BLAST${later}`) : 'SOUND BOARD'}</Label>
+                    <VoiceRoar online={connected} tag={tag} rival={profile.rival} />
+                    <View style={styles.sounds}>
+                        {SOUND_NAMES.map((name) => (
+                            <Pressable
+                                key={name}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Play ${SOUND_LABEL[name]}`}
+                                onPress={() => blast(name)}
+                                style={({ pressed }) => [styles.sound, pressed && { borderColor: THEME.roar, backgroundColor: THEME.raised }]}
+                            >
+                                <Text style={styles.soundText} numberOfLines={1}>{SOUND_LABEL[name]}</Text>
+                            </Pressable>
+                        ))}
                     </View>
                 </View>
 
@@ -135,7 +209,19 @@ export default function BanterScreen() {
                                 <Text style={[styles.msgFrom, { color: m.mine ? THEME.roar : TEAM_TEXT[m.team] }]}>{m.mine ? 'YOU' : m.from.toUpperCase()}</Text>
                                 {m.tag ? <Text style={styles.msgTag}>{m.tag}</Text> : null}
                             </View>
-                            <Text style={styles.msgText}>{m.text}</Text>
+                            {m.voiceId ? (
+                                <Pressable
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`Play voice roast from ${m.mine ? 'you' : m.from}`}
+                                    onPress={() => playVoice(voiceUrl(m.voiceId!))}
+                                    style={styles.voice}
+                                >
+                                    <Text style={styles.voiceText}>PLAY VOICE ROAR</Text>
+                                </Pressable>
+                            ) : STICKER_ONLY.includes(m.text) ? null : (
+                                <Text style={styles.msgText}>{m.text}</Text>
+                            )}
+                            {m.stickers?.length ? <StickerBurst names={m.stickers} size={40} animate={false} /> : null}
                         </View>
                     ))
                 )}
@@ -143,6 +229,12 @@ export default function BanterScreen() {
             <TabBar />
         </SafeAreaView>
     );
+}
+
+// "Lucky" + "Aman" and "Aman" + "Lucky" both give AMANLUCKY: names sorted, letters only, 12 max.
+function makePairCode(name: string, rival: string): string {
+    const clean = (n: string) => n.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6);
+    return [clean(name), clean(rival)].sort().join('') || 'FINAL19';
 }
 
 const styles = StyleSheet.create({
@@ -158,6 +250,11 @@ const styles = StyleSheet.create({
     switchTitle: { fontFamily: FONT.bold, fontSize: 14, color: THEME.text },
     line: { borderWidth: 1, borderColor: THEME.line, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 },
     lineText: { fontFamily: FONT.numBold, fontSize: 16, lineHeight: 19, color: THEME.text, textTransform: 'uppercase' },
+    sounds: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    stickers: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
+    sticker: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
+    sound: { minHeight: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: THEME.line, borderRadius: 22, paddingHorizontal: 14 },
+    soundText: { fontFamily: FONT.bold, fontSize: 14, color: THEME.text },
     msg: { borderRadius: 14, padding: 12, gap: 4, maxWidth: '88%' },
     msgMine: { alignSelf: 'flex-end', borderWidth: 1, borderColor: '#5A4E14', backgroundColor: '#1F1C10' },
     msgTheirs: { alignSelf: 'flex-start', borderWidth: 1, borderColor: THEME.line, backgroundColor: THEME.surface },
@@ -165,4 +262,6 @@ const styles = StyleSheet.create({
     msgFrom: { fontFamily: FONT.black, fontSize: 11, letterSpacing: 1.4 },
     msgTag: { fontFamily: FONT.numBold, fontSize: 13, color: THEME.muted },
     msgText: { fontFamily: FONT.semi, fontSize: 15, lineHeight: 20, color: THEME.text },
+    voice: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 12, backgroundColor: THEME.roar },
+    voiceText: { fontFamily: FONT.num, fontSize: 16, color: THEME.bg },
 });

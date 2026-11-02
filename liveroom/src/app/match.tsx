@@ -13,7 +13,8 @@ import { useMatchEngine, lastOverStartIndex } from '@/hooks/useMatchEngine';
 import { useRoar, type Speed } from '@/lib/store';
 import { ARM_CAMERA_AT, BIG_MOMENT_AT } from '@/lib/match/tension';
 import { ARMY_NAME, LABEL_COLOR, TEAM_COLOR, TEAM_TEXT } from '@/lib/teams';
-import { roastLine } from '@/lib/ai/captions';
+import { banterFor } from '@/lib/ai/live';
+import { playSound, soundForMoment } from '@/lib/sounds';
 import { rivalHere, sendRoast, useRival } from '@/lib/rival/room';
 import type { Moment } from '@/lib/moments/detect';
 import ReactionCamera from '@/components/ReactionCamera';
@@ -111,8 +112,12 @@ export default function MatchScreen() {
         Haptics.notificationAsync(
             goodForMe ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error,
         ).catch(() => {});
+        playSound(soundForMoment(latest.kind, goodForMe));
         if (goodForMe && profile.autoRoast) {
-            sendRoast(roastLine(latest, profile), `${latest.label} · ${latest.overText}`);
+            // AI writes the roast from this exact moment; templates if the AI is slow or offline.
+            banterFor(latest, 'Hinglish', profile).then(({ roasts, sound, stickers }) =>
+                sendRoast(`${roasts.Spicy.top} / ${roasts.Spicy.bottom}`, `${latest.label} · ${latest.overText}`, { sound, stickers }),
+            );
         }
 
         pending.current = { moment: latest, t0: Date.now(), tension: lastTension.current };
