@@ -1,0 +1,17 @@
+# Netlify configuration for ROAR monorepo root
+# Automatically builds the Expo web app inside the liveroom directory
+
+[build]
+  base = "liveroom"
+  command = "npx expo export --platform web --output-dir dist-web"
+  publish = "dist-web"
+
+[build.environment]
+  NODE_VERSION = "22"
+  CI = "true"
+
+# SPA Fallback for Expo Router (e.g., /match, /wall, /memory)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
