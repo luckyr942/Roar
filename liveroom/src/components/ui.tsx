@@ -9,12 +9,10 @@ import { FONT, THEME } from '../constants/theme';
 
 type IconName = React.ComponentProps<typeof Feather>['name'];
 
-// Small spaced-out caps label: "YOUR ARMY", "MOMENTS SO FAR".
 export function Label({ children, color = THEME.muted, style }: { children: React.ReactNode; color?: string; style?: StyleProp<TextStyle> }) {
     return <Text style={[styles.label, { color }, style]}>{children}</Text>;
 }
 
-// Solid badge: "WICKET", "RUN OUT", "SIX".
 export function Chip({ label, color, textColor = THEME.bg }: { label: string; color: string; textColor?: string }) {
     return (
         <View style={[styles.chip, { backgroundColor: color }]}>
@@ -32,7 +30,7 @@ type ButtonProps = {
     onPress: () => void;
     kind?: 'primary' | 'outline';
     icon?: IconName;
-    color?: string; // outline accent
+    color?: string;
     disabled?: boolean;
     style?: StyleProp<ViewStyle>;
 };
@@ -58,7 +56,6 @@ export function Button({ title, onPress, kind = 'primary', icon, color, disabled
     );
 }
 
-// Segmented control: speed, team, language, roast level.
 export function Segmented<T extends string | number>({
     options,
     value,

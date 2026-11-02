@@ -6,14 +6,12 @@ import path from 'node:path';
 
 const FROM = 'dist-web';
 const TO = 'dist-share';
-const BASE = '(window.__ROAR_BASE__||"/")'; // JS expression: the page's folder URL
+const BASE = '(window.__ROAR_BASE__||"/")';
 
 fs.rmSync(TO, { recursive: true, force: true });
 fs.cpSync(FROM, TO, { recursive: true });
-// Some hosts reserve folder names starting with "_", so "_expo/" becomes "expo/".
 fs.renameSync(path.join(TO, '_expo'), path.join(TO, 'expo'));
 
-// 1. In the JavaScript: "/_expo/x.js" → BASE+"expo/x.js", and "/assets/" → BASE+"assets/".
 function fixScripts(folder) {
     for (const name of fs.readdirSync(folder)) {
         const file = path.join(folder, name);
@@ -26,7 +24,6 @@ function fixScripts(folder) {
 }
 fixScripts(path.join(TO, 'expo'));
 
-// 2. In index.html: remember the folder first, then load the scripts relative to it.
 const htmlFile = path.join(TO, 'index.html');
 const rememberBase = `<script>window.__ROAR_BASE__=location.href.replace(/[?#].*$/,"").replace(/[^/]*$/,"");</script>`;
 const html = fs

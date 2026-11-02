@@ -7,17 +7,17 @@ import { computeState } from '@/lib/match/state';
 export type MomentKind = 'four' | 'six' | 'wicket' | 'result';
 
 export type Moment = {
-    id: string; // stable key, e.g. "m-242"
+    id: string;
     ballIndex: number;
     kind: MomentKind;
-    label: string; // badge: "WICKET", "RUN OUT", "SIX", ...
-    headline: string; // "WICKET!"
-    title: string; // "SN Thakur lbw · b SL Malinga"
-    detail: string; // "19.6 · CSK 148/7"
-    outcome?: string; // "MI won by 1 run" (last ball only)
-    overText: string; // "19.6"
-    team: Team; // the team this moment is good for
-    points: number; // army points for that team
+    label: string;
+    headline: string;
+    title: string;
+    detail: string;
+    outcome?: string;
+    overText: string;
+    team: Team;
+    points: number;
 };
 
 const POINTS: Record<MomentKind, number> = { four: 2, six: 3, wicket: 4, result: 10 };

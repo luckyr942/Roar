@@ -20,7 +20,6 @@ export default function ReactionCamera({ onFrame }: { onFrame: (uri: string) => 
                 const pic = await ref.current.takePictureAsync({ quality: 0.3, shutterSound: false });
                 if (pic?.uri) onFrame(pic.uri);
             } catch {
-                // camera busy or closing: skip this frame
             } finally {
                 busy.current = false;
             }

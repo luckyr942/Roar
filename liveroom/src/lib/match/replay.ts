@@ -4,7 +4,6 @@
 import type { Ball, MatchInfo, Team } from './types';
 import raw from '@/data/ipl2019-final-mi-csk.json';
 
-// Only the Cricsheet fields we use.
 type Delivery = {
     batter: string;
     bowler: string;
@@ -31,7 +30,7 @@ export function getMatchInfo(): MatchInfo {
     return {
         id: 'ipl-2019-final',
         title: `IPL ${info.dates[0].slice(0, 4)} ${info.event?.stage ?? 'Match'}`,
-        teams: [innings[0].team, innings[1].team], // batting order
+        teams: [innings[0].team, innings[1].team],
         short: SHORT,
         venue: info.venue,
         date: info.dates[0],

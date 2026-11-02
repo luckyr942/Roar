@@ -7,11 +7,10 @@ import { collections } from './db.mjs';
 
 const MAX_TEXT = 280;
 const HISTORY_SIZE = 20;
-// Sound names the app knows (src/data/sounds.json); anything else is dropped.
 const SOUNDS = Object.keys(JSON.parse(readFileSync(new URL('../src/data/sounds.json', import.meta.url), 'utf8')));
 const STICKERS = Object.keys(JSON.parse(readFileSync(new URL('../src/data/stickers.json', import.meta.url), 'utf8')));
 const MAX_STICKERS = 6;
-const rooms = new Map(); // room code → Set of open sockets
+const rooms = new Map();
 
 function membersOf(room) {
     return [...(rooms.get(room) ?? [])].map((socket) => ({ name: socket.fan.name, team: socket.fan.team }));
@@ -47,7 +46,6 @@ async function joinRoom(socket, message) {
     rooms.get(room).add(socket);
     sendToRoom(room, { type: 'presence', members: membersOf(room) });
 
-    // Send the newcomer the recent chat from the database.
     const history = await collections.roasts.find({ room }).sort({ at: -1 }).limit(HISTORY_SIZE).toArray();
     socket.send(JSON.stringify({ type: 'history', roasts: history.map(({ _id, ...roast }) => ({ id: String(_id), ...roast })) }));
 }
@@ -62,7 +60,7 @@ async function sendRoast(socket, message) {
         text: String(message.text ?? '').slice(0, MAX_TEXT),
         tag: String(message.tag ?? '').slice(0, 40),
         sound: SOUNDS.includes(message.sound) ? message.sound : null,
-        voiceId: /^[a-f0-9]{24}$/.test(message.voiceId) ? message.voiceId : null, // a recorded voice roast
+        voiceId: /^[a-f0-9]{24}$/.test(message.voiceId) ? message.voiceId : null,
         stickers: Array.isArray(message.stickers) ? message.stickers.filter((s) => STICKERS.includes(s)).slice(0, MAX_STICKERS) : [],
         at: Date.now(),
     };
@@ -74,7 +72,6 @@ async function sendRoast(socket, message) {
 
 export function startRoastRooms(httpServer) {
     const wss = new WebSocketServer({ server: httpServer });
-    // Start-up errors (like "port in use") are handled once in index.mjs; don't crash here.
     wss.on('error', () => {});
 
     wss.on('connection', (socket) => {
@@ -83,7 +80,7 @@ export function startRoastRooms(httpServer) {
             try {
                 message = JSON.parse(String(raw));
             } catch {
-                return; // ignore anything that isn't JSON
+                return;
             }
             const handle = message.type === 'join' ? joinRoom : message.type === 'roast' ? sendRoast : null;
             handle?.(socket, message).catch((error) => console.error('roast room:', error.message));

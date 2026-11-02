@@ -6,8 +6,8 @@ export type Team = 'MI' | 'CSK';
 export interface MatchInfo {
     id: string;
     title: string;
-    teams: [string, string]; // batting order: [first, second]
-    short: Record<string, Team>; // "Mumbai Indians" → "MI"
+    teams: [string, string];
+    short: Record<string, Team>;
     venue: string;
     date: string;
 }
@@ -15,19 +15,19 @@ export interface MatchInfo {
 export interface Ball {
     index: number;
     innings: 1 | 2;
-    over: number; // 0-based, as in Cricsheet
-    legalBall: number; // 1..6 within the over (wides/no-balls don't count)
+    over: number;
+    legalBall: number;
     batter: string;
     nonStriker: string;
     bowler: string;
-    runsBatter: number; // runs credited to the batter
-    runsExtras: number; // wides, no-balls, byes, leg-byes
-    runsTotal: number; // what goes on the scoreboard
+    runsBatter: number;
+    runsExtras: number;
+    runsTotal: number;
     isWide: boolean;
     isNoBall: boolean;
     wicket?: {
         playerOut: string;
-        kind: string; // "caught", "bowled", "run out", "lbw", ...
+        kind: string;
     };
 }
 
@@ -44,18 +44,16 @@ export interface MatchState {
     bowlingTeam: string;
     runs: number;
     wickets: number;
-    oversText: string; // "15.2"
+    oversText: string;
     legalBallsBowled: number;
     batters: BatterLine[];
     bowler: { name: string; runs: number; wickets: number };
-    last6: string[]; // ["1", "4", "W", ...]
+    last6: string[];
     currentRate: number;
-    // 2nd innings only:
     target?: number;
     runsNeeded?: number;
     ballsLeft?: number;
     requiredRate?: number;
-    // match end:
-    result?: string; // "MI won by 1 run"
+    result?: string;
     isOver: boolean;
 }

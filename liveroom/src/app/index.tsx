@@ -43,7 +43,7 @@ export default function HomeScreen() {
                     </Pressable>
                 </View>
 
-                {/* Your army */}
+                {}
                 <View style={styles.army}>
                     <View style={styles.armyTop}>
                         <View style={{ flex: 1 }}>
@@ -61,7 +61,7 @@ export default function HomeScreen() {
                     </View>
                 </View>
 
-                {/* The match */}
+                {}
                 <View style={styles.matchCard}>
                     <View style={styles.rowBetween}>
                         <Label>IPL 2019 · FINAL</Label>
@@ -94,7 +94,7 @@ export default function HomeScreen() {
                     </Pressable>
                 </View>
 
-                {/* Moments you lived */}
+                {}
                 <View style={styles.rowBetween}>
                     <Text style={styles.h2}>Moments you lived</Text>
                     <Pressable accessibilityRole="button" onPress={() => router.navigate('/me')}>

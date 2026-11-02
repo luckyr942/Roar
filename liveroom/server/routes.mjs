@@ -10,13 +10,11 @@ import { aiReady, writeBanter } from './ai.mjs';
 export const router = express.Router();
 
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
-const MAX_VOICE_BYTES = 3 * 1024 * 1024; // about 10 seconds of voice is far smaller
+const MAX_VOICE_BYTES = 3 * 1024 * 1024;
 
-// Keep only short strings, so nobody can store huge or odd values.
 const text = (value, maxLength = 80) => String(value ?? '').slice(0, maxLength);
 const team = (value) => (value === 'CSK' ? 'CSK' : 'MI');
 
-// Wraps a route so any error becomes a 500 reply instead of crashing the server.
 const safe = (handler) => (req, res) =>
     handler(req, res).catch((error) => {
         console.error(req.method, req.path, error.message);
@@ -35,8 +33,6 @@ router.get('/', (req, res) =>
 );
 
 router.get('/health', (req, res) => res.json({ ok: true, timestamp: Date.now() }));
-
-// ---- Fans --------------------------------------------------------------------------
 
 router.put('/fans/:fanId', safe(async (req, res) => {
     const fan = {
@@ -62,12 +58,10 @@ router.get('/fans/:fanId', safe(async (req, res) => {
     res.json(fan);
 }));
 
-// ---- Memories ----------------------------------------------------------------------
-
 router.put('/memories/:memoryId', safe(async (req, res) => {
     const memory = {
         fanId: text(req.body.fanId),
-        moment: req.body.moment ?? null, // the moment card data (label, title, over, ...)
+        moment: req.body.moment ?? null,
         hype: Number(req.body.hype) || 0,
         photoId: req.body.photoId ? text(req.body.photoId, 24) : null,
         shared: Boolean(req.body.shared),
@@ -84,8 +78,6 @@ router.get('/fans/:fanId/memories', safe(async (req, res) => {
     res.json(list);
 }));
 
-// ---- Photos (GridFS) ---------------------------------------------------------------
-
 router.post('/photos', express.raw({ type: 'image/*', limit: MAX_PHOTO_BYTES }), safe(async (req, res) => {
     if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
         return res.status(400).json({ error: 'Send the photo bytes with an image/* Content-Type' });
@@ -97,7 +89,6 @@ router.post('/photos', express.raw({ type: 'image/*', limit: MAX_PHOTO_BYTES }),
     res.json({ photoId: String(upload.id) });
 }));
 
-// Sends a stored file (photo or voice clip) back with its saved Content-Type.
 async function sendFile(fileId, fallbackType, res) {
     if (!ObjectId.isValid(fileId)) return res.status(404).end();
     const id = new ObjectId(fileId);
@@ -109,8 +100,6 @@ async function sendFile(fileId, fallbackType, res) {
 }
 
 router.get('/photos/:photoId', safe((req, res) => sendFile(req.params.photoId, 'image/jpeg', res)));
-
-// ---- Voice roasts (same GridFS bucket) ----------------------------------------------
 
 router.post('/voices', express.raw({ type: ['audio/*', 'video/webm', 'application/octet-stream'], limit: MAX_VOICE_BYTES }), safe(async (req, res) => {
     if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
@@ -125,8 +114,6 @@ router.post('/voices', express.raw({ type: ['audio/*', 'video/webm', 'applicatio
 }));
 
 router.get('/voices/:voiceId', safe((req, res) => sendFile(req.params.voiceId, 'audio/mp4', res)));
-
-// ---- Reaction wall -----------------------------------------------------------------
 
 router.get('/wall', safe(async (req, res) => {
     const myFanId = text(req.query.fanId);
@@ -170,18 +157,12 @@ router.post('/wall/:memoryId/vote', safe(async (req, res) => {
     res.json({ votes, votedByMe: removed.deletedCount === 0 });
 }));
 
-// ---- Banter history ----------------------------------------------------------------
-
 router.get('/rooms/:room/roasts', safe(async (req, res) => {
     const room = text(req.params.room, 12).toUpperCase();
     const list = await collections.roasts.find({ room }).sort({ at: -1 }).limit(50).toArray();
     res.json(list);
 }));
 
-// ---- AI banter ---------------------------------------------------------------------
-
-// The app sends the moment + who's watching; AI writes the caption and roasts.
-// 503 = no AI key, 502 = AI failed: either way the app quietly uses its templates.
 router.post('/ai/banter', async (req, res) => {
     if (!aiReady()) return res.status(503).json({ error: 'AI is not set up on this server' });
     const m = req.body.moment ?? {};

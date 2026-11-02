@@ -33,7 +33,6 @@ const DEMO_CROWD: Tile[] = [
     over: '19.6',
 }));
 
-// votes 70% (scaled so the most-voted = 100) + hype 30%
 function rank(tiles: Tile[]) {
     const maxVotes = Math.max(1, ...tiles.map((t) => t.votes));
     return tiles
@@ -48,9 +47,8 @@ export default function ReactionWallScreen() {
     const myLatestPost = useRoar((s) => s.memories.find((m) => m.posted));
 
     const [tiles, setTiles] = useState<Tile[]>([]);
-    const [isLive, setIsLive] = useState(false); // true = real posts from MongoDB
+    const [isLive, setIsLive] = useState(false);
 
-    // Load the wall every time this screen opens.
     useFocusEffect(
         useCallback(() => {
             let cancelled = false;
@@ -94,13 +92,12 @@ export default function ReactionWallScreen() {
     );
 
     const vote = (tile: Tile) => {
-        // Show the change at once; for real posts, then use the server's count.
         const flip = (t: Tile) => (t.id === tile.id ? { ...t, votedByMe: !t.votedByMe, votes: t.votes + (t.votedByMe ? -1 : 1) } : t);
         setTiles((all) => all.map(flip));
         if (!isLive) return;
         voteOnWall(tile.id, fanId)
             .then((result) => setTiles((all) => all.map((t) => (t.id === tile.id ? { ...t, ...result } : t))))
-            .catch(() => setTiles((all) => all.map(flip))); // undo if it failed
+            .catch(() => setTiles((all) => all.map(flip)));
     };
 
     const over = tiles.find((t) => t.isMine)?.over || tiles[0]?.over || '19.6';

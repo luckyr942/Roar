@@ -15,3 +15,7 @@ dist-share/
 .DS_Store
 Thumbs.db
 
+# IDE & local tooling
+.claude/
+demo-video/
+

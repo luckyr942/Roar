@@ -12,14 +12,13 @@ import { hypeFor } from '@/lib/ai/captions';
 import { Button, IconButton, Label } from '@/components/ui';
 
 const STRIP_SIZE = 5;
-const PEAK_OFFSET_MS = 1000; // the second after the ball is usually the loudest
+const PEAK_OFFSET_MS = 1000;
 
 const offsetLabel = (ms: number) => {
     const s = Math.round(ms / 1000);
     return s > 0 ? `+${s}s` : s < 0 ? `−${Math.abs(s)}s` : '0s';
 };
 
-// Up to 5 frames spread evenly across the capture window.
 function pickStrip(frames: Frame[]): Frame[] {
     if (frames.length <= STRIP_SIZE) return frames;
     return Array.from({ length: STRIP_SIZE }, (_, i) => frames[Math.round((i * (frames.length - 1)) / (STRIP_SIZE - 1))]);

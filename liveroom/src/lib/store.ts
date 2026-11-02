@@ -9,14 +9,14 @@ import type { Moment } from './moments/detect';
 
 export type Speed = 1 | 2 | 4;
 
-export type Frame = { uri: string; offsetMs: number }; // offset from the moment: -4000 = 4s before
+export type Frame = { uri: string; offsetMs: number };
 export type Capture = { moment: Moment; tension: number; frames: Frame[] };
 
 export type Memory = {
     id: string;
     moment: Moment;
-    frameUri: string | null; // photo on this phone; null when the camera was off
-    photoId?: string; // the same photo once uploaded to MongoDB
+    frameUri: string | null;
+    photoId?: string;
     hype: number;
     createdAt: number;
     shared: boolean;
@@ -27,29 +27,25 @@ export type Profile = {
     name: string;
     team: Team;
     rival: string;
-    room: string; // live banter room code shared with your rival
-    autoRoast: boolean; // send a roast by itself when a big moment goes your way
-    sounds: boolean; // meme sounds on roasts and big moments
+    room: string;
+    autoRoast: boolean;
+    sounds: boolean;
 };
 
-// A random id made once per install; it's how the database knows which memories are yours.
 const makeFanId = () => `fan-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
 type RoarState = {
-    // saved
     fanId: string;
     profile: Profile;
     memories: Memory[];
     matchesLived: number;
-    // this match
     startedAt: number | null;
     startIndex: number;
     speed: Speed;
     delayMs: number;
     armyPoints: Record<Team, number>;
     capture: Capture | null;
-    lastMoment: Moment | null; // latest big moment, for quick roasts on Banter
-    // actions
+    lastMoment: Moment | null;
     setProfile: (p: Partial<Profile>) => void;
     countMatch: () => void;
     start: (fromIndex?: number) => void;
@@ -79,13 +75,10 @@ export const useRoar = create<RoarState>()(
             lastMoment: null,
 
             setProfile: (p) => set((s) => ({ profile: { ...s.profile, ...p } })),
-            // Called from the Start button (an event), so it counts once per match.
             countMatch: () => set((s) => ({ matchesLived: s.matchesLived + 1 })),
-            // A new run of the replay: reset this match's army war.
             start: (fromIndex = 0) =>
                 set({ startedAt: Date.now(), startIndex: fromIndex, armyPoints: { MI: 0, CSK: 0 }, capture: null }),
             stop: () => set({ startedAt: null }),
-            // Speed and delay changes restart the clock from the next ball, so the score never jumps.
             setSpeed: (speed, currentIndex) => set({ speed, startedAt: Date.now(), startIndex: currentIndex + 1 }),
             setDelay: (delayMs, currentIndex) => set({ delayMs, startedAt: Date.now(), startIndex: currentIndex + 1 }),
             addArmyPoints: (team, pts) => set((s) => ({ armyPoints: { ...s.armyPoints, [team]: s.armyPoints[team] + pts } })),
@@ -99,16 +92,12 @@ export const useRoar = create<RoarState>()(
             name: 'roar',
             storage: createJSONStorage(() => AsyncStorage),
             partialize: (s) => ({ fanId: s.fanId, profile: s.profile, memories: s.memories, matchesLived: s.matchesLived }),
-            // Older saves don't have newer profile fields: keep the defaults for those.
             merge: (saved, current) => {
                 const s = (saved ?? {}) as Partial<RoarState>;
                 const profile = { ...current.profile, ...s.profile };
-                // The old default rival was "Rahul"; phones saved before the rename still have it.
                 if (profile.rival === 'Rahul') profile.rival = 'Aman';
                 return { ...current, ...s, profile };
             },
-            // The phone only writes when something changes. Write once right after loading,
-            // so a brand-new fanId is saved now (otherwise every app start made a new fan).
             onRehydrateStorage: () => (state) => {
                 if (state) useRoar.setState({ fanId: state.fanId });
             },

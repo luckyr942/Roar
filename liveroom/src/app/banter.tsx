@@ -25,16 +25,14 @@ export default function BanterScreen() {
     const members = useRival((s) => s.members);
     const messages = useRival((s) => s.messages);
 
-    // Both friends get the same code from their two names, so nobody has to type or share one.
     const pairCode = makePairCode(profile.name, profile.rival);
     const [code, setCode] = useState(profile.room || pairCode);
     const [draft, setDraft] = useState('');
-    const online = rivalHere(members); // your friend is in the room right now
+    const online = rivalHere(members);
     const inRoom = Boolean(profile.room);
-    const connected = inRoom && status === 'online'; // you can send; your friend gets it now or when they join
+    const connected = inRoom && status === 'online';
     const later = connected && !online ? ` · ${profile.rival.toUpperCase()} GETS IT WHEN THEY JOIN` : '';
 
-    // Roast lines for the latest big moment (AI when the server has it), else a few generic ones.
     const banter = useBanter(lastMoment, 'Hinglish', profile);
     const lines = banter ? SPICES.map((s) => `${banter.roasts[s].top} / ${banter.roasts[s].bottom}`) : QUICK_LINES;
     const tag = lastMoment ? `${lastMoment.label} · ${lastMoment.overText}` : '';
@@ -43,12 +41,10 @@ export default function BanterScreen() {
         if (text.trim()) sendRoast(text.trim(), tag, { sound, stickers });
     };
 
-    // Stickers: one tap throws one; the storm throws five at once.
     const throwStickers = (names: StickerName[], text = 'STICKER') => {
         if (connected) sendRoast(text, tag || 'STICKER', { stickers: names });
     };
 
-    // Sound board: plays here, and blasts the same sound on your friend's phone if they're in.
     const blast = (name: SoundName) => {
         playSound(name);
         if (connected) sendRoast(SOUND_LABEL[name].toUpperCase(), 'SOUND', { sound: name });
@@ -71,7 +67,7 @@ export default function BanterScreen() {
                     </View>
                 </View>
 
-                {/* Room */}
+                {}
                 <View style={styles.card}>
                     <Label>ROOM CODE</Label>
                     <View style={styles.row}>
@@ -116,7 +112,7 @@ export default function BanterScreen() {
                     </View>
                 </View>
 
-                {/* Fire a roast */}
+                {}
                 <View style={styles.card}>
                     <Label>{lastMoment ? `ROAST ABOUT ${tag}${banter?.byAI ? ' · WRITTEN BY AI' : ''}` : 'QUICK ROASTS'}</Label>
                     {lines.map((line) => (
@@ -153,7 +149,7 @@ export default function BanterScreen() {
                     </View>
                 </View>
 
-                {/* Sticker tray */}
+                {}
                 <View style={styles.card}>
                     <Label>
                         {connected
@@ -185,7 +181,7 @@ export default function BanterScreen() {
                     />
                 </View>
 
-                {/* Sound board */}
+                {}
                 <View style={styles.card}>
                     <Label>{connected ? (online ? `SOUND BLAST · ${profile.rival.toUpperCase()} HEARS IT TOO` : `SOUND BLAST${later}`) : 'SOUND BOARD'}</Label>
                     <VoiceRoar online={connected} tag={tag} rival={profile.rival} />
@@ -204,7 +200,7 @@ export default function BanterScreen() {
                     </View>
                 </View>
 
-                {/* Feed */}
+                {}
                 <Label>THE BANTER</Label>
                 {messages.length === 0 ? (
                     <Text style={styles.small}>No roasts yet. The first wicket usually starts it.</Text>
@@ -237,7 +233,6 @@ export default function BanterScreen() {
     );
 }
 
-// "Lucky" + "Aman" and "Aman" + "Lucky" both give AMANLUCKY: names sorted, letters only, 12 max.
 function makePairCode(name: string, rival: string): string {
     const clean = (n: string) => n.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6);
     return [clean(name), clean(rival)].sort().join('') || 'FINAL19';

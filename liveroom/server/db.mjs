@@ -17,7 +17,6 @@ export async function connectToDatabase() {
     collections.roasts = db.collection('roasts');
     photoBucket = new GridFSBucket(db, { bucketName: 'photos' });
 
-    // Indexes make the common lookups fast and stop double votes.
     await collections.memories.createIndex({ fanId: 1, createdAt: -1 });
     await collections.memories.createIndex({ posted: 1, createdAt: -1 });
     await collections.votes.createIndex({ memoryId: 1, fanId: 1 }, { unique: true });

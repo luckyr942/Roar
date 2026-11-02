@@ -21,11 +21,11 @@ import ReactionCamera from '@/components/ReactionCamera';
 import { Chip, IconButton, Label, Segmented } from '@/components/ui';
 
 const SPEEDS: Speed[] = [1, 2, 4];
-const DELAYS_MS = [0, 5000, 10000, 30000]; // tap "TV sync" to cycle
-const BUFFER_BEFORE_MS = 5000; // frames kept from before the moment
-const CAPTURE_AFTER_MS = 3000; // keep filming this long after the moment
+const DELAYS_MS = [0, 5000, 10000, 30000];
+const BUFFER_BEFORE_MS = 5000;
+const CAPTURE_AFTER_MS = 3000;
 const METER_SEGMENTS = 20;
-const ARMY_BASE = 20; // both armies start with some fans, so one moment can't show 100% / 0%
+const ARMY_BASE = 20;
 const CHIP_BG: Record<string, string> = { W: THEME.drop, '6': THEME.mi, '4': THEME.mint };
 
 export default function MatchScreen() {
@@ -50,15 +50,11 @@ export default function MatchScreen() {
     const [permission, requestPermission] = useCameraPermissions();
     const [capturing, setCapturing] = useState(false);
 
-    // Start when the screen opens (at the last over if Home asked), stop when it closes.
     useEffect(() => {
         start(jump === 'lastover' ? lastOverStartIndex(balls) : 0);
         return stop;
     }, [jump, balls, start, stop]);
 
-    // --- Reaction capture -------------------------------------------------------------
-    // While armed, the camera buffers a frame a second. When a big moment lands we keep
-    // filming a few more seconds, then hand the frames around the moment to Review.
     const frames = useRef<{ uri: string; t: number }[]>([]);
     const pending = useRef<{ moment: Moment; t0: number; tension: number } | null>(null);
     const finishTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -94,8 +90,6 @@ export default function MatchScreen() {
     const showCamera = cameraOn && focused && (armed || capturing);
     const rivalOnline = rivalHere(members);
 
-    // Each new moment: army points to the team it's good for (once). If it's big and happening
-    // right now: buzz, roast your rival if it went your way, and open the capture window.
     const lastMomentId = useRef<string | null>(null);
     const latest = moments[0];
     useEffect(() => {
@@ -114,7 +108,6 @@ export default function MatchScreen() {
         ).catch(() => {});
         playSound(soundForMoment(latest.kind, goodForMe));
         if (goodForMe && profile.autoRoast) {
-            // AI writes the roast from this exact moment; templates if the AI is slow or offline.
             banterFor(latest, 'Hinglish', profile).then(({ roasts, sound, stickers }) =>
                 sendRoast(`${roasts.Spicy.top} / ${roasts.Spicy.bottom}`, `${latest.label} · ${latest.overText}`, { sound, stickers }),
             );
@@ -126,7 +119,6 @@ export default function MatchScreen() {
         finishTimer.current = setTimeout(finishCapture, cameraOn ? CAPTURE_AFTER_MS : 1200);
     }, [latest, index, tension, focused, cameraOn, profile, addArmyPoints, setLastMoment, finishCapture]);
 
-    // --- View ---------------------------------------------------------------------------
     const short = (team: string) => info.short[team] ?? team;
     const batting = short(state.battingTeam);
     const inLastOver = state.innings === 2 && index >= lastOverStartIndex(balls) - 1;
@@ -149,7 +141,7 @@ export default function MatchScreen() {
 
     return (
         <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-            {/* Score header */}
+            {}
             <View style={styles.header}>
                 <View style={styles.rowBetween}>
                     <View style={styles.row}>
@@ -236,7 +228,7 @@ export default function MatchScreen() {
             </View>
 
             <ScrollView contentContainerStyle={styles.body}>
-                {/* Tension */}
+                {}
                 <View style={[styles.card, armed && styles.cardArmed]}>
                     <View style={styles.tensionRow}>
                         <View style={{ flex: 1, gap: 8 }}>
@@ -268,7 +260,7 @@ export default function MatchScreen() {
                     )}
                 </View>
 
-                {/* Army war */}
+                {}
                 <View style={styles.card}>
                     <View style={styles.rowBetween}>
                         <Text style={[styles.armyPct, { color: THEME.mi }]}>MI {miPct}%</Text>
@@ -300,7 +292,7 @@ export default function MatchScreen() {
                     </Pressable>
                 </View>
 
-                {/* Moments */}
+                {}
                 <Label>MOMENTS SO FAR</Label>
                 <View style={[styles.card, { padding: 0 }]}>
                     {moments.length === 0 && <Text style={[styles.note, { padding: 14 }]}>Fours, sixes and wickets land here.</Text>}

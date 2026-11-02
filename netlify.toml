@@ -9,6 +9,8 @@
 [build.environment]
   NODE_VERSION = "22"
   CI = "true"
+  # Where the live banter server runs (not a secret: every phone needs it).
+  EXPO_PUBLIC_SERVER_URL = "https://roar-091h.onrender.com"
 
 # SPA Fallback for Expo Router (e.g., /match, /wall, /memory)
 [[redirects]]

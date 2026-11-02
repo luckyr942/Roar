@@ -9,15 +9,14 @@ const RETRY_MS = 3000;
 
 export type RoastMsg = { id: string; from: string; team: Team; text: string; tag: string; at: number; mine: boolean } & RoastExtras;
 
-// What a roast can carry besides its text: a meme sound, a recorded voice, a few stickers.
 export type RoastExtras = { sound?: string | null; voiceId?: string | null; stickers?: string[] };
 type Member = { name: string; team: Team };
 
 type RivalState = {
-    status: 'off' | 'connecting' | 'online'; // online = connected to the roast server
-    members: Member[]; // everyone in the room, you included
-    messages: RoastMsg[]; // newest first
-    toast: RoastMsg | null; // latest incoming roast, shown as a banner
+    status: 'off' | 'connecting' | 'online';
+    members: Member[];
+    messages: RoastMsg[];
+    toast: RoastMsg | null;
     dismissToast: () => void;
 };
 
@@ -34,7 +33,7 @@ let wanted: { room: string; fanId: string; name: string; team: Team } | null = n
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
 function connect() {
-    if (!wanted || !hasServer()) return; // no server (public web demo): live banter stays off
+    if (!wanted || !hasServer()) return;
     if (retryTimer) clearTimeout(retryTimer);
     socket?.close();
 
@@ -56,7 +55,6 @@ function connect() {
             return;
         }
         if (msg.type === 'presence') useRival.setState({ members: msg.members });
-        // Saved chat from MongoDB, sent once when we join. Mine = sent with my fan id.
         if (msg.type === 'history') {
             const myFanId = wanted?.fanId;
             const history: RoastMsg[] = msg.roasts.map((r: Omit<RoastMsg, 'mine'> & { fanId: string }) => ({ ...r, mine: r.fanId === myFanId }));
@@ -69,7 +67,7 @@ function connect() {
     };
 
     ws.onclose = () => {
-        if (socket !== ws) return; // an older socket we replaced on purpose
+        if (socket !== ws) return;
         socket = null;
         useRival.setState({ status: wanted ? 'connecting' : 'off', members: [] });
         if (wanted) retryTimer = setTimeout(connect, RETRY_MS);
@@ -91,7 +89,6 @@ export function leaveRoom() {
     useRival.setState({ status: 'off', members: [] });
 }
 
-// Returns false when not connected, so the UI can say so instead of pretending it was sent.
 export function sendRoast(text: string, tag: string, extras: RoastExtras = {}): boolean {
     if (!socket || socket.readyState !== WebSocket.OPEN || !wanted) return false;
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -101,5 +98,4 @@ export function sendRoast(text: string, tag: string, extras: RoastExtras = {}): 
     return true;
 }
 
-// Is anyone besides me in the room? (members includes me)
 export const rivalHere = (members: Member[]) => members.length > 1;

@@ -46,13 +46,11 @@ export function useMatchEngine() {
     const state = useMemo(() => computeState(balls, index, info), [balls, index, info]);
     const ball = index >= 0 ? balls[index] : null;
     const tensionValue = useMemo(() => tension(state, ball), [state, ball]);
-    // Moments so far, newest first.
     const moments = useMemo(() => allMoments.filter((m) => m.ballIndex <= index).reverse(), [allMoments, index]);
 
     return { balls, info, index, ball, state, tension: tensionValue, moments };
 }
 
-// First ball of the chase's last over (for the demo jump).
 export function lastOverStartIndex(balls: Ball[]): number {
     const lastOver = Math.max(...balls.filter((b) => b.innings === 2).map((b) => b.over));
     return balls.findIndex((b) => b.innings === 2 && b.over === lastOver);

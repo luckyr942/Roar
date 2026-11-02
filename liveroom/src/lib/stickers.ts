@@ -3,7 +3,6 @@
 
 import STICKER_INFO from '@/data/stickers.json';
 
-// Keep these names the same as the keys in src/data/stickers.json.
 export const STICKERS = {
     lol: require('../../assets/stickers/lol.png'),
     rofl: require('../../assets/stickers/rofl.png'),
@@ -37,7 +36,6 @@ export const STICKER_MEANING = STICKER_INFO as Record<StickerName, string>;
 
 export const isStickerName = (value: unknown): value is StickerName => typeof value === 'string' && value in STICKERS;
 
-// Stickers that fit a moment, for when the AI isn't there to pick.
 export function stickersForMoment(kind: string, goodForMe: boolean): StickerName[] {
     if (kind === 'result') return goodForMe ? ['trophy', 'crown', 'party'] : ['crying', 'heartbreak', 'melting'];
     if (kind === 'wicket') return goodForMe ? ['skull', 'clown', 'popcorn'] : ['scream', 'crying', 'heartbreak'];
@@ -45,7 +43,6 @@ export function stickersForMoment(kind: string, goodForMe: boolean): StickerName
     return goodForMe ? ['lol', 'fire'] : ['eyes', 'sleeping'];
 }
 
-// A random handful, for the sticker storm button.
 export function randomStickers(count: number): StickerName[] {
     return [...STICKER_NAMES].sort(() => Math.random() - 0.5).slice(0, count);
 }

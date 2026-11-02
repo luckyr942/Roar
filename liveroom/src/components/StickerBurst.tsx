@@ -5,12 +5,10 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Image, StyleSheet, View } from 'react-native';
 import { STICKERS, isStickerName } from '@/lib/stickers';
 
-// Placeholder texts for roasts that are only stickers, so the UI shows the stickers alone.
 export const STICKER_ONLY = ['STICKER', 'STICKER STORM'];
 
 export default function StickerBurst({ names, size = 64, animate = true }: { names: string[]; size?: number; animate?: boolean }) {
     const stickers = names.filter(isStickerName);
-    // One scale value per sticker; they start tiny and spring to full size, staggered.
     const scales = useRef(stickers.map(() => new Animated.Value(animate ? 0.2 : 1))).current;
 
     useEffect(() => {

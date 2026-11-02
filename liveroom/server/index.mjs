@@ -7,18 +7,15 @@ import { connectToDatabase } from './db.mjs';
 import { router } from './routes.mjs';
 import { startRoastRooms } from './roast-room.mjs';
 
-// Auto-load .env file into process.env in Node 20+
 try {
     process.loadEnvFile?.();
 } catch (e) {
-    // Already in environment or .env not found
 }
 
 const PORT = Number(process.env.PORT ?? 8787);
 
 const app = express();
 
-// Enable CORS so the React Native app & Web can talk to the server
 app.use((req, res, next) => {
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Access-Control-Allow-Methods', 'GET,POST,PUT,OPTIONS');
@@ -30,7 +27,6 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '200kb' }));
 app.use(router);
 
-// Connect to MongoDB first. If that fails, say why and stop (no silent fake saving).
 if (!process.env.MONGODB_URI) {
     console.error('Missing MONGODB_URI. Copy .env.example to .env and fill it in.');
     process.exit(1);
@@ -46,7 +42,6 @@ try {
 const server = http.createServer(app);
 startRoastRooms(server);
 
-// Most common start-up problem: the server is already running in another terminal.
 server.on('error', (error) => {
     if (error.code === 'EADDRINUSE') {
         console.error(`\nPort ${PORT} is already in use: the ROAR server is probably already running in another terminal.`);

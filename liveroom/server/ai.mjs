@@ -3,16 +3,12 @@
 
 import { readFileSync } from 'node:fs';
 
-// Free-tier models are often "busy", so we try them in order until one answers.
-// Set ROAR_GEMINI_MODELS (comma-separated) on Render if Google retires one of these.
 const MODELS = (process.env.ROAR_GEMINI_MODELS ?? 'gemini-3.5-flash,gemini-flash-lite-latest,gemini-3.8-flash').split(',');
 const TIMEOUT_MS = 7000;
 
-// ROAR's own name, so a GEMINI_API_KEY set for other tools on the computer can't override it.
 const KEY = () => process.env.ROAR_GEMINI_KEY;
 export const aiReady = () => Boolean(KEY());
 
-// The meme sounds the app has, with what each one means (shared with the app).
 const SOUND_INFO = JSON.parse(readFileSync(new URL('../src/data/sounds.json', import.meta.url), 'utf8'));
 const SOUNDS = Object.keys(SOUND_INFO);
 const SOUND_LIST = SOUNDS.map((name) => `  ${name}: ${SOUND_INFO[name].mood}`).join('\n');
@@ -20,7 +16,6 @@ const STICKER_INFO = JSON.parse(readFileSync(new URL('../src/data/stickers.json'
 const STICKERS = Object.keys(STICKER_INFO);
 const STICKER_LIST = STICKERS.map((name) => `  ${name}: ${STICKER_INFO[name]}`).join('\n');
 
-// The rules every answer must follow. Facts only come from the moment we send.
 const RULES = `You write live cricket banter for ROAR, an app where two friends who support rival IPL teams watch a match together on their phones.
 Write in the language asked for: Hinglish, English, or Marathi (Devanagari).
 Hinglish means mostly Hindi words typed in English letters, the way Indian fans text each other, for example "Bhai Watson gaya, ab trophy Mumbai ki" or "CSK walon ka WiFi bhi chala gaya". Never answer plain English when Hinglish is asked.
@@ -35,8 +30,6 @@ ${SOUND_LIST}
 - stickers: pick 2 or 3 sticker names (from this list only) that make the roast funnier:
 ${STICKER_LIST}`;
 
-
-// What Gemini must return: the same shape the template captions already use.
 const LINE = { type: 'OBJECT', properties: { top: { type: 'STRING' }, bottom: { type: 'STRING' } }, required: ['top', 'bottom'] };
 const ANSWER = {
     type: 'OBJECT',
@@ -53,7 +46,6 @@ const ANSWER = {
     required: ['caption', 'roasts', 'sound', 'stickers'],
 };
 
-// Same moment + same fan + same language = same answer, so the free quota lasts longer.
 const answers = new Map();
 
 export async function writeBanter({ moment, fan, lang }) {

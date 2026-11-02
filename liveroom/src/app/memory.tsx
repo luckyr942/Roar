@@ -54,7 +54,6 @@ export default function MemoryScreen() {
         setNote(ok ? `Sent to ${profile.rival}.` : `Not connected. Join a room on Banter first.`);
     };
 
-    // Turn the card into a PNG and open the share sheet (WhatsApp, Instagram, ...).
     const shareImage = async () => {
         try {
             const uri = await captureRef(cardRef, { format: 'png', quality: 0.9 });
@@ -87,7 +86,7 @@ export default function MemoryScreen() {
                     <View style={{ width: 40 }} />
                 </View>
 
-                {/* The card. This exact view becomes the shared image. */}
+                {}
                 <View ref={cardRef} collapsable={false} style={styles.card}>
                     <View style={styles.photo}>
                         {memory.frameUri ? (
@@ -124,7 +123,7 @@ export default function MemoryScreen() {
 
                 <Segmented options={LANGS} value={lang} onChange={setLang} activeBg={THEME.text} height={38} />
 
-                {/* Roast for your rival */}
+                {}
                 <View style={styles.roastCard}>
                     <View style={styles.rowBetween}>
                         <Label>

@@ -7,7 +7,6 @@ const BALLS_PER_INNINGS = 120;
 
 export const oversText = (legal: number) => `${Math.floor(legal / 6)}.${legal % 6}`;
 
-// index = -1 means "before the first ball".
 export function computeState(balls: Ball[], index: number, info: MatchInfo): MatchState {
     const upto = balls.slice(0, index + 1);
     const last = upto[upto.length - 1];
@@ -28,20 +27,19 @@ export function computeState(balls: Ball[], index: number, info: MatchInfo): Mat
 
         const s = bat.get(b.batter) ?? { runs: 0, balls: 0 };
         s.runs += b.runsBatter;
-        if (!b.isWide) s.balls++; // a wide isn't a ball faced
+        if (!b.isWide) s.balls++;
         bat.set(b.batter, s);
         if (!bat.has(b.nonStriker)) bat.set(b.nonStriker, { runs: 0, balls: 0 });
 
         const bw = bowl.get(b.bowler) ?? { runs: 0, wickets: 0 };
-        bw.runs += b.runsTotal; // simplification: includes byes and leg-byes
+        bw.runs += b.runsTotal;
         if (b.wicket) {
             wickets++;
-            if (b.wicket.kind !== 'run out') bw.wickets++; // run-outs aren't the bowler's
+            if (b.wicket.kind !== 'run out') bw.wickets++;
         }
         bowl.set(b.bowler, bw);
     }
 
-    // At the crease: the last ball's pair minus anyone out on it. The next ball's batter is on strike.
     const next = balls[index + 1];
     const striker = next && next.innings === innings ? next.batter : last?.batter;
     const pair = last ? [last.batter, last.nonStriker].filter((n) => n !== last.wicket?.playerOut) : [];

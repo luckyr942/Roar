@@ -24,11 +24,9 @@ const templates = (moment: Moment, lang: Lang, fan: Fan): Banter => ({
     byAI: false,
 });
 
-// One-off version, for code that sends a roast right away (auto-roast).
 export async function banterFor(moment: Moment, lang: Lang, fan: Fan): Promise<Banter> {
     if (!hasServer()) return templates(moment, lang, fan);
     try {
-        // Free-tier AI can be slow: after 12 seconds we stop waiting and use the templates.
         const tooSlow = new Promise<never>((_, fail) => setTimeout(() => fail(new Error('AI too slow')), 12000));
         const answer = await Promise.race([askAiBanter(moment, fan, lang), tooSlow]);
         const sound = isSoundName(answer.sound) ? answer.sound : soundForMoment(moment.kind, moment.team === fan.team);
@@ -40,7 +38,6 @@ export async function banterFor(moment: Moment, lang: Lang, fan: Fan): Promise<B
     }
 }
 
-// Hook version, for screens: templates first, AI lines once they arrive.
 export function useBanter(moment: Moment | null, lang: Lang, fan: Fan): Banter | null {
     const [banter, setBanter] = useState<Banter | null>(moment ? templates(moment, lang, fan) : null);
 
@@ -57,7 +54,7 @@ export function useBanter(moment: Moment | null, lang: Lang, fan: Fan): Banter |
         return () => {
             stillHere = false;
         };
-    }, [moment, lang, fan.name, fan.team, fan.rival]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [moment, lang, fan.name, fan.team, fan.rival]);
 
     return banter;
 }

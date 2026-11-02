@@ -5,11 +5,11 @@ import type { Ball, MatchState } from './types';
 
 const BALLS_PER_INNINGS = 120;
 
-export const ARM_CAMERA_AT = 75; // camera starts buffering frames
-export const BIG_MOMENT_AT = 85; // a wicket or six at this tension opens Review
+export const ARM_CAMERA_AT = 75;
+export const BIG_MOMENT_AT = 85;
 
 export function tension(state: MatchState, ball: Ball | null): number {
-    if (state.isOver) return 0; // pressure released
+    if (state.isOver) return 0;
 
     let spike = 0;
     if (ball?.wicket) spike = 10;
@@ -21,7 +21,6 @@ export function tension(state: MatchState, ball: Ball | null): number {
     const rrr = state.requiredRate ?? 0;
 
     const lateness = 1 - ballsLeft / BALLS_PER_INNINGS;
-    // 1 while the chase is in the balance (6..12 an over), falling off when it's too easy or too hard.
     const balance = rrr <= 0 ? 0 : 1 - Math.min(1, Math.max(0, Math.abs(rrr - 9) - 3) / 9);
     const fallen = state.wickets / 10;
 

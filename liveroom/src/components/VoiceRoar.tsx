@@ -16,7 +16,7 @@ import { uploadVoice } from '@/lib/api';
 import { sendRoast } from '@/lib/rival/room';
 
 const MAX_SECONDS = 10;
-const MIN_SECONDS = 0.4; // shorter than this is a mis-tap, not a roast
+const MIN_SECONDS = 0.4;
 
 export default function VoiceRoar({ online, tag, rival }: { online: boolean; tag: string; rival: string }) {
     const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
@@ -31,7 +31,6 @@ export default function VoiceRoar({ online, tag, rival }: { online: boolean; tag
         if (!recorder.isRecording) return;
         const seconds = recorder.currentTime;
         await recorder.stop();
-        // Back to normal playback so sounds use the loudspeaker again.
         setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false }).catch(() => {});
         if (seconds < MIN_SECONDS || !recorder.uri) {
             setNote('Hold the button while you talk.');
@@ -57,7 +56,7 @@ export default function VoiceRoar({ online, tag, rival }: { online: boolean; tag
                 setNote('Allow the microphone to send voice roasts.');
                 return;
             }
-            if (!holding.current) return; // let go while the permission prompt was open
+            if (!holding.current) return;
             await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true });
             await recorder.prepareToRecordAsync();
             recorder.record();

@@ -8,10 +8,6 @@ import type { Moment } from './moments/detect';
 
 const SERVER_PORT = 8787;
 
-// Where is the ROAR server?
-// 1. Deployed: set EXPO_PUBLIC_SERVER_URL (e.g. https://roar-server.onrender.com) when building.
-// 2. Development: the server runs on your laptop, port 8787.
-// 3. A public web demo with no server set: none. The app then runs on this device only.
 const DEPLOYED_SERVER = process.env.EXPO_PUBLIC_SERVER_URL?.replace(/\/$/, '') ?? '';
 
 function devServerHost(): string | null {
@@ -29,14 +25,12 @@ function serverBase(): string | null {
     return host ? `http://${host}:${SERVER_PORT}` : null;
 }
 
-// False on the public web demo: nothing is synced and live banter is off.
 export const hasServer = () => serverBase() !== null;
 export const serverUrl = () => serverBase() ?? '';
 export const socketUrl = () => serverUrl().replace(/^http/, 'ws');
 export const photoUrl = (photoId: string) => `${serverUrl()}/photos/${photoId}`;
 export const voiceUrl = (voiceId: string) => `${serverUrl()}/voices/${voiceId}`;
 
-// Small helper: send JSON, get JSON back, throw if the server says no.
 async function callServer(path: string, method = 'GET', body?: unknown) {
     if (!hasServer()) throw new Error('No ROAR server on this device');
     const response = await fetch(`${serverUrl()}${path}`, {
@@ -48,7 +42,6 @@ async function callServer(path: string, method = 'GET', body?: unknown) {
     return response.json();
 }
 
-// AI-written caption + roasts for a moment (the server holds the AI key, never the app).
 export function askAiBanter(
     moment: Moment,
     fan: { name: string; team: string; rival: string },
@@ -73,7 +66,6 @@ export function saveMemory(fanId: string, memory: Memory) {
     });
 }
 
-// Reads the photo file on the phone and uploads its bytes. Returns the photo's id in MongoDB.
 export async function uploadPhoto(localUri: string): Promise<string> {
     if (!hasServer()) throw new Error('No ROAR server on this device');
     const photo = await (await fetch(localUri)).blob();
@@ -87,7 +79,6 @@ export async function uploadPhoto(localUri: string): Promise<string> {
     return result.photoId;
 }
 
-// Upload a recorded voice roast; the friend's phone streams it back by id.
 export async function uploadVoice(localUri: string): Promise<string> {
     if (!hasServer()) throw new Error('No ROAR server on this device');
     const clip = await (await fetch(localUri)).blob();

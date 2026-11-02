@@ -25,8 +25,6 @@ export default function RoastBanner() {
     const toast = useRival((s) => s.toast);
     const dismissToast = useRival((s) => s.dismissToast);
 
-    // Join (or leave) the room whenever the code, name or team changes. Waits a moment so
-    // typing your name doesn't reconnect on every letter.
     useEffect(() => {
         const t = setTimeout(() => (room ? joinRoom(room, fanId, name, team) : leaveRoom()), REJOIN_AFTER_TYPING_MS);
         return () => clearTimeout(t);

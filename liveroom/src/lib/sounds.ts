@@ -5,8 +5,6 @@ import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-aud
 import { useRoar } from '@/lib/store';
 import SOUND_INFO from '@/data/sounds.json';
 
-// To change a sound, replace the file in assets/sounds/ and keep the same name.
-// Keep these names the same as the keys in src/data/sounds.json.
 const FILES = {
     faaah: require('../../assets/sounds/faaah.mp3'),
     shocked: require('../../assets/sounds/shocked.mp3'),
@@ -26,14 +24,11 @@ const FILES = {
 export type SoundName = keyof typeof FILES;
 export const SOUND_NAMES = Object.keys(FILES) as SoundName[];
 
-// Names, labels and moods live in src/data/sounds.json (the server and AI read the same file).
 export const SOUND_LABEL = Object.fromEntries(Object.entries(SOUND_INFO).map(([name, info]) => [name, info.label])) as Record<SoundName, string>;
 
 export const isSoundName = (value: unknown): value is SoundName => typeof value === 'string' && value in FILES;
 
-// One player per sound, made the first time it plays and reused after that.
 const players: Partial<Record<SoundName, AudioPlayer>> = {};
-// Some meme clips run 10-20 seconds; banter only needs the punch, so we cut them off.
 const MAX_SOUND_MS = 6000;
 const stopTimers: Partial<Record<SoundName, ReturnType<typeof setTimeout>>> = {};
 let modeSet = false;
@@ -43,7 +38,6 @@ export function playSound(name: SoundName | undefined | null) {
     try {
         if (!modeSet) {
             modeSet = true;
-            // Sound effects: play even on silent, and don't stop the TV/music app.
             setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'mixWithOthers' }).catch(() => {});
         }
         const player = (players[name] ??= createAudioPlayer(FILES[name]));
@@ -52,11 +46,9 @@ export function playSound(name: SoundName | undefined | null) {
         clearTimeout(stopTimers[name]);
         stopTimers[name] = setTimeout(() => player.pause(), MAX_SOUND_MS);
     } catch {
-        // A sound failing must never break the match screen.
     }
 }
 
-// A friend's voice roast, streamed from the server. Only one plays at a time.
 let voicePlayer: AudioPlayer | null = null;
 
 export function playVoice(url: string) {
@@ -66,11 +58,9 @@ export function playVoice(url: string) {
         voicePlayer = createAudioPlayer({ uri: url });
         voicePlayer.play();
     } catch {
-        // A clip that can't play (old browser, bad network) is skipped quietly.
     }
 }
 
-// Good moment for you → celebrate; bad moment → the classic "it's over" sounds.
 export function soundForMoment(kind: string, goodForMe: boolean): SoundName {
     if (kind === 'result') return goodForMe ? 'nemesis' : 'meri-jung';
     if (kind === 'wicket') return goodForMe ? 'emotional-damage' : 'faaah';

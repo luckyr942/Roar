@@ -12,7 +12,6 @@ export const SPICES: Spice[] = ['Mild', 'Spicy', 'Savage'];
 
 export type Fan = { name: string; team: Team; rival: string };
 
-// Good for the fan's team → celebrate. Bad → heartbreak.
 export function captionFor(moment: Moment, lang: Lang, fan: Fan): string {
     const good = moment.team === fan.team;
     const what = moment.title;
@@ -27,7 +26,6 @@ export function captionFor(moment: Moment, lang: Lang, fan: Fan): string {
     return good ? `${what}! ${fan.name} completely lost it on the couch` : `${what}. ${fan.name} can't watch. Still believing.`;
 }
 
-// Three roast levels aimed at the rival (or at yourself, if the moment hurt).
 export function roastsFor(moment: Moment, fan: Fan): Record<Spice, { top: string; bottom: string }> {
     const rival = fan.rival.toUpperCase();
     const good = moment.team === fan.team;
@@ -46,20 +44,17 @@ export function roastsFor(moment: Moment, fan: Fan): Record<Spice, { top: string
     };
 }
 
-// One line to send live to the rival's phone.
 export function roastLine(moment: Moment, fan: Fan, spice: Spice = 'Spicy'): string {
     const r = roastsFor(moment, fan)[spice];
     return `${r.top} / ${r.bottom}`;
 }
 
-// Quick lines for the Banter screen when there's no moment to point at.
 export const QUICK_LINES = [
     'Scoreboard check?',
     'Still think it was an easy chase?',
     'Keep your phone charged, you will need tissues.',
 ];
 
-// How loud is this memory? Tension when it happened + how big the moment was.
 export function hypeFor(moment: Moment, tensionAtMoment: number): number {
     return Math.min(99, Math.round(40 + tensionAtMoment * 0.5 + moment.points * 1.5));
 }

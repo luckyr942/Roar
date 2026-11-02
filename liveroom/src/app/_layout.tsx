@@ -12,7 +12,7 @@ import RoastBanner from '@/components/RoastBanner';
 import { useSaveToDatabase } from '@/lib/sync';
 
 export default function RootLayout() {
-    useSaveToDatabase(); // keeps MongoDB in step with the phone (profile, memories, photos)
+    useSaveToDatabase();
     const [loaded, fontError] = useFonts({
         Barlow_400Regular,
         Barlow_600SemiBold,
@@ -21,7 +21,6 @@ export default function RootLayout() {
         BarlowCondensed_700Bold,
         BarlowCondensed_800ExtraBold,
     });
-    // Wait for the fonts, but if they fail to load, show the app in system fonts instead of a blank screen.
     if (!loaded && !fontError) return <View style={{ flex: 1, backgroundColor: THEME.bg }} />;
 
     return (
