@@ -23,6 +23,17 @@ const safe = (handler) => (req, res) =>
         res.status(500).json({ error: 'Something went wrong on the server' });
     });
 
+router.get('/', (req, res) =>
+    res.json({
+        name: 'ROAR Backend Server',
+        status: 'online',
+        endpoints: {
+            health: '/health',
+            wall: '/wall',
+        },
+    }),
+);
+
 router.get('/health', (req, res) => res.json({ ok: true, timestamp: Date.now() }));
 
 // ---- Fans --------------------------------------------------------------------------
